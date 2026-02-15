@@ -1,0 +1,62 @@
+-- Initialize the script
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+-- Create RemoteEvent for communication
+local powerGrabEvent = Instance.new("RemoteEvent")
+powerGrabEvent.Name = "PowerGrabEvent"
+powerGrabEvent.Parent = ReplicatedStorage
+
+-- Function to handle clicking on the Delta object
+local function onDeltaClicked(player: Player)
+    -- Notify player with a message
+    player:SendNotification({
+        Title = "Delta Clicked!",
+        Text = "You will receive the ritz power",
+        Duration = 3
+    })
+
+    -- Create a visual box
+    local box = Instance.new("Part")
+    box.Size = Vector3.new(5, 5, 5)
+    box.Position = player.Character.PrimaryPart.Position + Vector3.new(0, 5, 0)
+    box.Anchored = true
+    box.BrickColor = BrickColor.new("Really red")
+    box.Material = Enum.Material.Neon
+    box.Parent = workspace
+    
+    -- Tween the box to pulse
+    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true)
+    local tween = TweenService:Create(box, tweenInfo, {Size = Vector3.new(6, 6, 6)})
+    tween:Play()
+
+    -- Wait for player to click the box
+    box.Touched:Connect(function(hit)
+        local touchingPlayer = Players:GetPlayerFromCharacter(hit.Parent)
+        if touchingPlayer and touchingPlayer == player then
+            -- Grant powers and teleport
+            local teleportPosition = Vector3.new(0, 10, 0) -- Define your destination positions here
+            player.Character:SetPrimaryPartCFrame(CFrame.new(teleportPosition))
+            -- Optional: Make sure to remove the box after use
+            box:Destroy()
+            -- Notify player
+            player:SendNotification({
+                Title = "Power Granted!",
+                Text = "You have the power to grab brainrots!",
+                Duration = 3
+            })
+        end
+    end)
+end
+
+-- Example connection for clicking on the Delta object
+local deltaObject = workspace:WaitForChild("Delta") -- Replace with your Delta object's path
+
+-- Assuming Delta is a ClickDetector
+local clickDetector = deltaObject:FindFirstChildOfClass("ClickDetector")
+if clickDetector then
+    clickDetector.MouseClick:Connect(onDeltaClicked)
+else
+    warn("ClickDetector not found on Delta object.")
+end
